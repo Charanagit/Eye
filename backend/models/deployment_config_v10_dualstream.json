@@ -1,0 +1,36 @@
+{
+  "diseases": [
+    "DR",
+    "ARMD",
+    "DN",
+    "MYA",
+    "BRVO",
+    "TSLN",
+    "ODC",
+    "Cataract",
+    "Glaucoma",
+    "Normal"
+  ],
+  "bengraham_models": [
+    "C:\\Users\\chara\\OneDrive\\Desktop\\demo\\01_web_application\\backend\\models\\bengraham_models\\v10_bengraham_fold1.keras",
+    "C:\\Users\\chara\\OneDrive\\Desktop\\demo\\01_web_application\\backend\\models\\bengraham_models\\v10_bengraham_fold2.keras",
+    "C:\\Users\\chara\\OneDrive\\Desktop\\demo\\01_web_application\\backend\\models\\bengraham_models\\v10_bengraham_fold3.keras"
+  ],
+  "colour_models": [
+    "C:\\Users\\chara\\OneDrive\\Desktop\\demo\\01_web_application\\backend\\models\\colour_models\\v10_colour_fold1.keras",
+    "C:\\Users\\chara\\OneDrive\\Desktop\\demo\\01_web_application\\backend\\models\\colour_models\\v10_colour_fold2.keras",
+    "C:\\Users\\chara\\OneDrive\\Desktop\\demo\\01_web_application\\backend\\models\\colour_models\\v10_colour_fold3.keras"
+  ],
+  "thresholds": {
+    "DR": 0.65,
+    "ARMD": 0.65,
+    "DN": 0.65,
+    "MYA": 0.65,
+    "BRVO": 0.65,
+    "TSLN": 0.65,
+    "ODC": 0.7,
+    "Cataract": 0.9,
+    "Glaucoma": 0.7,
+    "Normal": 0.75
+  }
+}
