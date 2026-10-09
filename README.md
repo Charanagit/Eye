@@ -195,28 +195,6 @@ npm run dev
 
 ---
 
-## ☁️ Deployment to Vercel
-
-The frontend is fully configured for zero-friction serverless hosting on **Vercel**:
-
-1. Push your repository to **GitHub**.
-2. Go to [vercel.com/new](https://vercel.com/new) and select your repository.
-3. If the frontend is inside a subfolder, set **Root Directory** to `frontend`.
-4. (Optional) Set Environment Variable:
-   - `BACKEND_URL`: URL of your live FastAPI GPU backend (e.g. `https://your-space.hf.space`).
-   - *If omitted, the built-in clinical simulation engine ensures 100% uptime with zero crashes.*
-5. Click **Deploy**.
-
----
-
-## 📊 Evaluation & Verification
-
-To verify that the frontend builds cleanly for production with zero TypeScript or ESLint errors:
-```bash
-cd frontend
-npm run build
-```
-
 ---
 
 ## 📄 License & Attribution
