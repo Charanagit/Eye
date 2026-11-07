@@ -66,7 +66,9 @@ export default function Home() {
     }
 
     const demo = params.get("demo");
-    if (demo === "loaded") {
+    if (demo === "sample_modal") {
+      setIsSampleLibraryOpen(true);
+    } else if (demo === "loaded") {
       loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)");
     } else if (demo === "results" || demo === "filters") {
       loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)").then(() => {
@@ -325,172 +327,50 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased selection:bg-slate-900 selection:text-white flex flex-col justify-between">
       {/* Top Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md px-6 py-3.5 shadow-sm print:hidden">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md px-6 py-3 shadow-xs print:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           {/* Brand */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md">
-              <span className="text-xl font-black">👁️</span>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
+              <span className="text-lg">👁️</span>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black tracking-tight text-slate-900">
-                  RetinaScreen
-                </h1>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200">
-                  Dual-Stream AI v10
-                </span>
-              </div>
-              <p className="text-[11px] font-medium text-slate-500">
-                10-Disease Multi-Label Ophthalmic Triage & Decision Support
-              </p>
+              <h1 className="text-base font-bold tracking-tight text-slate-900">
+                RetinaScreen
+              </h1>
             </div>
           </div>
 
-          {/* Quick Actions & Status */}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Guided Tutorial Button */}
-            <button
-              onClick={() => setIsTutorialOpen(true)}
-              className="relative flex items-center gap-1.5 rounded-xl border border-indigo-300 bg-indigo-50/90 px-3 py-1.5 text-xs font-bold text-indigo-900 hover:bg-indigo-100 shadow-sm transition-colors"
-              title="Open Guided Interactive Tutorial"
-            >
-              <span className="relative flex h-2 w-2">
-                {!hasCompletedTutorial && (
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                )}
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
-              </span>
-              <span>🎓 Tutorial</span>
-            </button>
-
-            {/* Test Images Gallery Button */}
+          {/* Clean, minimalist actions */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSampleLibraryOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50/90 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition-colors"
-              title="Open Pre-Loaded Fundus Images Library"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             >
-              <span>📁</span>
-              <span>Test Images</span>
+              Sample Images
             </button>
-
-            {/* Backend Status Pill */}
             <button
-              onClick={() => setIsBackendConfigOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors shadow-sm"
-              title="Configure Backend Connection"
+              onClick={() => setIsTutorialOpen(true)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  backendReady ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
-                }`}
-              />
-              <span>{backendReady ? `FastAPI Live (${backendLatency || "<1"}ms)` : "Vercel Standalone Mode"}</span>
-              <span className="text-[10px] text-slate-400">⚙️</span>
+              Tutorial
             </button>
-
-            {/* Disease Handbook */}
             <button
               onClick={() => setIsEncyclopediaOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             >
-              <span>📖</span>
-              <span>Encyclopedia</span>
+              Encyclopedia
             </button>
-
-            {/* Admin Control Panel Link */}
-            <Link
-              href="/admin"
-              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 shadow-sm transition-colors"
-            >
-              <svg className="h-3.5 w-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
-              <span>Admin</span>
-            </Link>
-
-            {/* Reset Workspace */}
             <button
               onClick={resetAll}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 shadow-sm transition-colors"
-              title="Reset Workspace"
+              className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+              title="Reset"
             >
-              🔄 Reset
+              Reset
             </button>
           </div>
         </div>
       </header>
-
-      {/* Quick Clinical Test Cases Bar */}
-      <section className="border-b border-slate-200/80 bg-white px-6 py-2.5 shadow-sm print:hidden">
-        <div className="mx-auto flex max-w-7xl items-center justify-between flex-wrap gap-2 text-xs">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold uppercase tracking-wider text-[11px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1">
-              <span>⭐</span>
-              <span>Test Images:</span>
-            </span>
-
-            {/* User Provided Sample Images */}
-            <button
-              onClick={() => loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)")}
-              className="rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 font-bold text-red-950 hover:bg-red-100 shadow-sm transition-all text-[11px] flex items-center gap-1"
-              title="Diabetic Retinopathy sample (eye dr.jpg)"
-            >
-              <span>🔴</span>
-              <span>DR (eye dr.jpg)</span>
-            </button>
-            <button
-              onClick={() => loadSampleCase("glaucoma_1.jpg", "Elena Rostova (PT-619)", "66", "Female", "OS (Left Eye)")}
-              className="rounded-lg border border-blue-300 bg-blue-50 px-2.5 py-1 font-bold text-blue-950 hover:bg-blue-100 shadow-sm transition-all text-[11px] flex items-center gap-1"
-              title="Glaucoma sample (glaucoma 1.jpg)"
-            >
-              <span>🔵</span>
-              <span>Glaucoma (glaucoma 1.jpg)</span>
-            </button>
-            <button
-              onClick={() => loadSampleCase("cataract_1.jpg", "Arthur Miller (PT-302)", "72", "Male", "OD (Right Eye)")}
-              className="rounded-lg border border-slate-300 bg-slate-100 px-2.5 py-1 font-bold text-slate-900 hover:bg-slate-200 shadow-sm transition-all text-[11px] flex items-center gap-1"
-              title="Cataract sample (cataract 1.jpg)"
-            >
-              <span>⚪</span>
-              <span>Cataract (cataract 1.jpg)</span>
-            </button>
-
-            {/* Other Benchmarks */}
-            <span className="text-slate-300 mx-0.5">|</span>
-            <button
-              onClick={() => loadSampleCase("ARMD_Sample.jpeg", "Arthur Pendelton (PT-882)", "76", "Male", "OD (Right Eye)")}
-              className="rounded-lg border border-amber-200 bg-amber-50/80 px-2.5 py-1 font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition-all text-[11px]"
-            >
-              🟡 ARMD
-            </button>
-            <button
-              onClick={() => loadSampleCase("BRVO_Sample.jpeg", "Marcus Vance (PT-914)", "65", "Male", "OD (Right Eye)")}
-              className="rounded-lg border border-purple-200 bg-purple-50/80 px-2.5 py-1 font-bold text-purple-900 hover:bg-purple-100 shadow-sm transition-all text-[11px]"
-            >
-              🟣 BRVO
-            </button>
-
-            <button
-              onClick={() => setIsSampleLibraryOpen(true)}
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 font-bold text-slate-800 hover:bg-slate-50 shadow-sm transition-all text-[11px] flex items-center gap-1"
-            >
-              <span>📁</span>
-              <span>Browse All (7 Scans)</span>
-            </button>
-          </div>
-
-          <button
-            onClick={loadNonFundusTest}
-            className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 font-bold text-amber-900 hover:bg-amber-100 shadow-sm text-[11px]"
-            title="Demonstrate Non-Fundus Image Rejection Guardrail"
-          >
-            ⚠️ Test Non-Fundus Guardrail
-          </button>
-        </div>
-      </section>
 
       {/* Main Workspace Layout */}
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6 print:hidden">
@@ -657,65 +537,27 @@ export default function Home() {
                       if (f) selectFile(f);
                     }}
                   />
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-md border border-slate-200 text-3xl mb-3">
-                    📸
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-700 mb-2.5">
+                    📁
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800">
-                    Upload Patient Fundus Photograph
+                  <h4 className="text-sm font-semibold text-slate-800">
+                    Upload a retinal fundus scan
                   </h4>
                   <p className="mt-1 max-w-sm text-xs text-slate-500">
-                    Drag and drop high-resolution JPEG/PNG, or click to browse local files.
+                    Drag and drop image here, or click to browse files
                   </p>
-                  <div className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-slate-400">
-                    <span>Compatible with: Topcon • Canon • Zeiss • Eyer Handheld</span>
-                  </div>
-
-                  {/* Test Images Helper inside dropzone */}
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-5 w-full max-w-lg rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/90 p-4 text-center shadow-sm"
-                  >
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-black text-amber-950">
-                      <span>💡</span>
-                      <span>Don&apos;t have a fundus image? Test with our pre-loaded scans:</span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-amber-800">
-                      Click any button below to instantly load a test scan into the viewer:
-                    </p>
-                    <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={() => loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)")}
-                        className="rounded-xl bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
-                      >
-                        <span>🔴</span>
-                        <span>Diabetic Retinopathy</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => loadSampleCase("glaucoma_1.jpg", "Elena Rostova (PT-619)", "66", "Female", "OS (Left Eye)")}
-                        className="rounded-xl bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
-                      >
-                        <span>🔵</span>
-                        <span>Glaucoma</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => loadSampleCase("cataract_1.jpg", "Arthur Miller (PT-302)", "72", "Male", "OD (Right Eye)")}
-                        className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
-                      >
-                        <span>⚪</span>
-                        <span>Cataract</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsSampleLibraryOpen(true)}
-                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
-                      >
-                        <span>📁</span>
-                        <span>Full Library...</span>
-                      </button>
-                    </div>
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsSampleLibraryOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                    >
+                      <span>📁</span>
+                      <span>No scan? Select from sample images →</span>
+                    </button>
                   </div>
                 </div>
               ) : (
