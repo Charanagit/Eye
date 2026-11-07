@@ -7,6 +7,8 @@ import DiseaseDetailModal from "@/components/DiseaseDetailModal";
 import ClinicalReportModal from "@/components/ClinicalReportModal";
 import DiseaseEncyclopediaModal from "@/components/DiseaseEncyclopediaModal";
 import BackendConfigModal from "@/components/BackendConfigModal";
+import TutorialModal from "@/components/TutorialModal";
+import SampleLibraryModal from "@/components/SampleLibraryModal";
 import { Finding, PredictionResult, PatientSessionRecord, DISEASE_LABELS } from "@/lib/types";
 
 type Status = "idle" | "loading" | "error";
@@ -37,6 +39,9 @@ export default function Home() {
   const [clinicalReportFinding, setClinicalReportFinding] = useState<Finding | null>(null);
   const [isEncyclopediaOpen, setIsEncyclopediaOpen] = useState(false);
   const [isBackendConfigOpen, setIsBackendConfigOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isSampleLibraryOpen, setIsSampleLibraryOpen] = useState(false);
+  const [hasCompletedTutorial, setHasCompletedTutorial] = useState(true);
   const [sessionHistory, setSessionHistory] = useState<PatientSessionRecord[]>([]);
 
   // Backend Health & Custom URL
@@ -45,6 +50,72 @@ export default function Home() {
   const [backendLatency, setBackendLatency] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check onboarding tutorial status on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const isScreenshotMode = params.get("screenshot_mode") === "1";
+    const completed = localStorage.getItem("retinascreen_tutorial_completed");
+
+    if (!completed && !isScreenshotMode) {
+      setIsTutorialOpen(true);
+      setHasCompletedTutorial(false);
+    } else {
+      setHasCompletedTutorial(true);
+    }
+
+    const demo = params.get("demo");
+    if (demo === "loaded") {
+      loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)");
+    } else if (demo === "results" || demo === "filters") {
+      loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)").then(() => {
+        setTimeout(() => {
+          setResult({
+            is_fundus: true,
+            findings: [
+              { disease: "DR", probability: 0.94, bengraham_probability: 0.96, colour_probability: 0.88, threshold: 0.35, flagged: true },
+              { disease: "DN", probability: 0.45, bengraham_probability: 0.48, colour_probability: 0.42, threshold: 0.36, flagged: true },
+              { disease: "Glaucoma", probability: 0.12, bengraham_probability: 0.15, colour_probability: 0.10, threshold: 0.38, flagged: false },
+              { disease: "ARMD", probability: 0.08, bengraham_probability: 0.07, colour_probability: 0.09, threshold: 0.32, flagged: false },
+              { disease: "Cataract", probability: 0.04, bengraham_probability: 0.05, colour_probability: 0.03, threshold: 0.40, flagged: false },
+              { disease: "BRVO", probability: 0.06, bengraham_probability: 0.08, colour_probability: 0.05, threshold: 0.30, flagged: false },
+              { disease: "ODC", probability: 0.10, bengraham_probability: 0.12, colour_probability: 0.09, threshold: 0.37, flagged: false },
+              { disease: "Normal", probability: 0.03, bengraham_probability: 0.04, colour_probability: 0.02, threshold: 0.50, flagged: false },
+            ],
+            flagged_diseases: ["DR", "DN"],
+            triage_urgency: {
+              level: "Urgent Referral (< 48 Hours)",
+              color: "red",
+              action: "Immediate comprehensive ophthalmic examination recommended due to active sight-threatening retinal lesions.",
+            },
+            iqa: {
+              sharpness_score: 87.5,
+              contrast_score: 91.2,
+              uniformity_score: 89.0,
+              quality_grade: "Grade A (Optimal Diagnostic Quality)",
+              fov_coverage_pct: 95.4,
+            },
+            pipeline: "Dual-Stream v10 (Ben Graham + Colour-Enhanced)",
+            num_bg_models: 3,
+            num_colour_models: 3,
+            img_size: 300,
+          });
+          if (demo === "filters") {
+            setViewMode("bengraham");
+          }
+        }, 300);
+      });
+    }
+  }, []);
+
+  const handleCompleteTutorial = (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      localStorage.setItem("retinascreen_tutorial_completed", "true");
+    }
+    setHasCompletedTutorial(true);
+    setIsTutorialOpen(false);
+  };
 
   // Check backend health on mount and on URL change
   useEffect(() => {
@@ -97,7 +168,13 @@ export default function Home() {
     });
   }, []);
 
-  const loadSampleCase = async (fileName: string, samplePatient: string, sampleAge: string, sampleGender: string) => {
+  const loadSampleCase = async (
+    fileName: string,
+    samplePatient: string,
+    sampleAge: string,
+    sampleGender: string,
+    sampleLaterality: "OD (Right Eye)" | "OS (Left Eye)" = "OD (Right Eye)"
+  ) => {
     try {
       setStatus("loading");
       setError(null);
@@ -109,6 +186,7 @@ export default function Home() {
       setPatientName(samplePatient);
       setPatientAge(sampleAge);
       setPatientGender(sampleGender);
+      setEyeLaterality(sampleLaterality);
       selectFile(sampleFile);
       setStatus("idle");
     } catch (err) {
@@ -271,6 +349,31 @@ export default function Home() {
 
           {/* Quick Actions & Status */}
           <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Guided Tutorial Button */}
+            <button
+              onClick={() => setIsTutorialOpen(true)}
+              className="relative flex items-center gap-1.5 rounded-xl border border-indigo-300 bg-indigo-50/90 px-3 py-1.5 text-xs font-bold text-indigo-900 hover:bg-indigo-100 shadow-sm transition-colors"
+              title="Open Guided Interactive Tutorial"
+            >
+              <span className="relative flex h-2 w-2">
+                {!hasCompletedTutorial && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                )}
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+              </span>
+              <span>🎓 Tutorial</span>
+            </button>
+
+            {/* Test Images Gallery Button */}
+            <button
+              onClick={() => setIsSampleLibraryOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50/90 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition-colors"
+              title="Open Pre-Loaded Fundus Images Library"
+            >
+              <span>📁</span>
+              <span>Test Images</span>
+            </button>
+
             {/* Backend Status Pill */}
             <button
               onClick={() => setIsBackendConfigOpen(true)}
@@ -292,7 +395,7 @@ export default function Home() {
               className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
             >
               <span>📖</span>
-              <span>Disease Encyclopedia</span>
+              <span>Encyclopedia</span>
             </button>
 
             {/* Admin Control Panel Link */}
@@ -305,7 +408,7 @@ export default function Home() {
                 <polyline points="2 17 12 22 22 17" />
                 <polyline points="2 12 12 17 22 12" />
               </svg>
-              <span>Admin Control Panel</span>
+              <span>Admin</span>
             </Link>
 
             {/* Reset Workspace */}
@@ -324,38 +427,58 @@ export default function Home() {
       <section className="border-b border-slate-200/80 bg-white px-6 py-2.5 shadow-sm print:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between flex-wrap gap-2 text-xs">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold uppercase tracking-wider text-[11px] text-slate-600 mr-1">
-              ⚡ 1-Click Clinical Samples:
+            <span className="font-bold uppercase tracking-wider text-[11px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1">
+              <span>⭐</span>
+              <span>Test Images:</span>
             </span>
+
+            {/* User Provided Sample Images */}
             <button
-              onClick={() => loadSampleCase("Diabetic_Retinopathy_Dr3.jpeg", "Sarah Connor (PT-104)", "54", "Female")}
-              className="rounded-lg border border-red-200 bg-red-50/80 px-2.5 py-1 font-bold text-red-900 hover:bg-red-100 shadow-sm transition-all text-[11px]"
+              onClick={() => loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)")}
+              className="rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 font-bold text-red-950 hover:bg-red-100 shadow-sm transition-all text-[11px] flex items-center gap-1"
+              title="Diabetic Retinopathy sample (eye dr.jpg)"
             >
-              🔴 Diabetic Retinopathy (DR)
+              <span>🔴</span>
+              <span>DR (eye dr.jpg)</span>
             </button>
             <button
-              onClick={() => loadSampleCase("ARMD_Sample.jpeg", "Arthur Pendelton (PT-882)", "76", "Male")}
+              onClick={() => loadSampleCase("glaucoma_1.jpg", "Elena Rostova (PT-619)", "66", "Female", "OS (Left Eye)")}
+              className="rounded-lg border border-blue-300 bg-blue-50 px-2.5 py-1 font-bold text-blue-950 hover:bg-blue-100 shadow-sm transition-all text-[11px] flex items-center gap-1"
+              title="Glaucoma sample (glaucoma 1.jpg)"
+            >
+              <span>🔵</span>
+              <span>Glaucoma (glaucoma 1.jpg)</span>
+            </button>
+            <button
+              onClick={() => loadSampleCase("cataract_1.jpg", "Arthur Miller (PT-302)", "72", "Male", "OD (Right Eye)")}
+              className="rounded-lg border border-slate-300 bg-slate-100 px-2.5 py-1 font-bold text-slate-900 hover:bg-slate-200 shadow-sm transition-all text-[11px] flex items-center gap-1"
+              title="Cataract sample (cataract 1.jpg)"
+            >
+              <span>⚪</span>
+              <span>Cataract (cataract 1.jpg)</span>
+            </button>
+
+            {/* Other Benchmarks */}
+            <span className="text-slate-300 mx-0.5">|</span>
+            <button
+              onClick={() => loadSampleCase("ARMD_Sample.jpeg", "Arthur Pendelton (PT-882)", "76", "Male", "OD (Right Eye)")}
               className="rounded-lg border border-amber-200 bg-amber-50/80 px-2.5 py-1 font-bold text-amber-900 hover:bg-amber-100 shadow-sm transition-all text-[11px]"
             >
-              🟡 Macular Degeneration (ARMD)
+              🟡 ARMD
             </button>
             <button
-              onClick={() => loadSampleCase("Glaucoma_Eyer_g2.png", "Elena Rostova (PT-619)", "68", "Female")}
-              className="rounded-lg border border-blue-200 bg-blue-50/80 px-2.5 py-1 font-bold text-blue-900 hover:bg-blue-100 shadow-sm transition-all text-[11px]"
-            >
-              🔵 Glaucoma (Optic Cupping)
-            </button>
-            <button
-              onClick={() => loadSampleCase("Cataract_Sample.jpeg", "David Miller (PT-302)", "71", "Male")}
-              className="rounded-lg border border-slate-300 bg-slate-100 px-2.5 py-1 font-bold text-slate-800 hover:bg-slate-200 shadow-sm transition-all text-[11px]"
-            >
-              ⚪ Cataract (Media Haze)
-            </button>
-            <button
-              onClick={() => loadSampleCase("BRVO_Sample.jpeg", "Marcus Vance (PT-914)", "65", "Male")}
+              onClick={() => loadSampleCase("BRVO_Sample.jpeg", "Marcus Vance (PT-914)", "65", "Male", "OD (Right Eye)")}
               className="rounded-lg border border-purple-200 bg-purple-50/80 px-2.5 py-1 font-bold text-purple-900 hover:bg-purple-100 shadow-sm transition-all text-[11px]"
             >
-              🟣 Vein Occlusion (BRVO)
+              🟣 BRVO
+            </button>
+
+            <button
+              onClick={() => setIsSampleLibraryOpen(true)}
+              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 font-bold text-slate-800 hover:bg-slate-50 shadow-sm transition-all text-[11px] flex items-center gap-1"
+            >
+              <span>📁</span>
+              <span>Browse All (7 Scans)</span>
             </button>
           </div>
 
@@ -545,6 +668,54 @@ export default function Home() {
                   </p>
                   <div className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-slate-400">
                     <span>Compatible with: Topcon • Canon • Zeiss • Eyer Handheld</span>
+                  </div>
+
+                  {/* Test Images Helper inside dropzone */}
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-5 w-full max-w-lg rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/90 p-4 text-center shadow-sm"
+                  >
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-black text-amber-950">
+                      <span>💡</span>
+                      <span>Don&apos;t have a fundus image? Test with our pre-loaded scans:</span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-amber-800">
+                      Click any button below to instantly load a test scan into the viewer:
+                    </p>
+                    <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => loadSampleCase("eye_dr.jpg", "Marcus Thorne (PT-701)", "58", "Male", "OD (Right Eye)")}
+                        className="rounded-xl bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
+                      >
+                        <span>🔴</span>
+                        <span>Diabetic Retinopathy</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => loadSampleCase("glaucoma_1.jpg", "Elena Rostova (PT-619)", "66", "Female", "OS (Left Eye)")}
+                        className="rounded-xl bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
+                      >
+                        <span>🔵</span>
+                        <span>Glaucoma</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => loadSampleCase("cataract_1.jpg", "Arthur Miller (PT-302)", "72", "Male", "OD (Right Eye)")}
+                        className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
+                      >
+                        <span>⚪</span>
+                        <span>Cataract</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSampleLibraryOpen(true)}
+                        className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 px-3 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
+                      >
+                        <span>📁</span>
+                        <span>Full Library...</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -956,6 +1127,25 @@ export default function Home() {
           clinicianName={clinicianName}
         />
       )}
+
+      {/* Interactive New User Tutorial Modal */}
+      <TutorialModal
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+        onComplete={handleCompleteTutorial}
+        onLoadSample={(fileName, samplePatient, sampleAge, sampleGender, sampleLaterality) => {
+          loadSampleCase(fileName, samplePatient, sampleAge, sampleGender, sampleLaterality);
+        }}
+      />
+
+      {/* Pre-Loaded Fundus Images Library Modal */}
+      <SampleLibraryModal
+        isOpen={isSampleLibraryOpen}
+        onClose={() => setIsSampleLibraryOpen(false)}
+        onSelectSample={(fileName, samplePatient, sampleAge, sampleGender, sampleLaterality) => {
+          loadSampleCase(fileName, samplePatient, sampleAge, sampleGender, sampleLaterality);
+        }}
+      />
     </div>
   );
 }

@@ -20,18 +20,21 @@ function generateSimulatedResult(fileName: string) {
   let primaryDisease = "DR";
   let prob = 0.88;
 
-  if (lower.includes("armd") || lower.includes("macular")) {
-    primaryDisease = "ARMD";
-    prob = 0.86;
+  if (lower.includes("cataract")) {
+    primaryDisease = "Cataract";
+    prob = 0.91;
   } else if (lower.includes("glaucoma") || lower.includes("g2")) {
     primaryDisease = "Glaucoma";
     prob = 0.84;
-  } else if (lower.includes("cataract")) {
-    primaryDisease = "Cataract";
-    prob = 0.91;
+  } else if (lower.includes("armd") || lower.includes("macular")) {
+    primaryDisease = "ARMD";
+    prob = 0.86;
   } else if (lower.includes("brvo") || lower.includes("bravo") || lower.includes("vein")) {
     primaryDisease = "BRVO";
     prob = 0.82;
+  } else if (lower.includes("dr") || lower.includes("retinopathy") || lower.includes("diabetic") || lower.includes("eye dr")) {
+    primaryDisease = "DR";
+    prob = 0.89;
   } else if (lower.includes("normal") || lower.includes("healthy")) {
     primaryDisease = "Normal";
     prob = 0.94;
